@@ -25,6 +25,9 @@
 	}
 
 </style>
+
+<title>Earthquake Map</title>
+
 <body>
 	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script></script>
 	<script src="//d3js.org/topojson.v1.min.js"></script>
@@ -60,7 +63,7 @@ var magnitudeScale = d3.scale.linear()
 			.range([0, 60]);
 
 	
-d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, countries) {
+var worldMap = d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, countries) {
    
   svg.selectAll(".subunit")
       .data(topojson.feature(countries, countries.objects.countries).features)
@@ -69,7 +72,7 @@ d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7
       .attr("d", path);
 });
 
-d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson", function(error, earthquakes){
+var earthQuakes = d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson", function(error, earthquakes){
 
 	svg.selectAll(".earthQuakes")
 	.data(earthquakes.features)
@@ -95,6 +98,7 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_w
 	});				
 });
 
+earthQuakes.raise();
 
 }
 
