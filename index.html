@@ -21,7 +21,7 @@
 		background: lightsteelblue;	
 		border: 0px;		
 		border-radius: 8px;			
-		pointer-events: none;			
+		pointer-events: none;
 	}
 
 </style>
@@ -29,7 +29,7 @@
 <title>Earthquake Map</title>
 
 <body>
-	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script></script>
+	<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 	<script src="//d3js.org/topojson.v1.min.js"></script>
 <script>
 
@@ -97,8 +97,6 @@ var earthQuakes = d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/sum
 		window.open(d.properties.url, '_blank');
 	});				
 });
-
-earthQuakes.raise();
 
 }
 
