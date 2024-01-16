@@ -29,7 +29,7 @@
 <title>Earthquake Map</title>
 
 <body>
-	<script src="d3.v7.min.js"></script>
+	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script></script>
 	<script src="//d3js.org/topojson.v1.min.js"></script>
 <script>
 
@@ -41,12 +41,12 @@ var width = window.innerWidth-30,
     height = window.innerHeight-30;
 
 	
-var projection = d3.geoMercator()
+var projection = d3.geo.mercator()
     .center([0, 0])
     .scale(width*0.1588)
     .translate([width / 2, height / 2]);
 
-var path = d3.geoPath()
+var path = d3.geo.path()
     .projection(projection);
 
 var svg = d3.select("body").append("svg")
@@ -58,12 +58,12 @@ var div = d3.select("body").append("div")
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
-var magnitudeScale = d3.scaleLinear()
+var magnitudeScale = d3.scale.linear()
 			.domain([Math.sqrt(Math.pow(10, -1)), Math.sqrt(Math.pow(10, 8))])
 			.range([0, 60]);
 
 	
-var worldMap = d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, countries) {
+d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, countries) {
    
   svg.selectAll(".subunit")
       .data(topojson.feature(countries, countries.objects.countries).features)
@@ -72,7 +72,7 @@ var worldMap = d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772
       .attr("d", path);
 });
 
-var earthQuakes = d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson", function(error, earthquakes){
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson", function(error, earthquakes){
 
 	svg.selectAll(".earthQuakes")
 	.data(earthquakes.features)
