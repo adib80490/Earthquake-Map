@@ -1,107 +1,123 @@
-
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
+path {
+  stroke: #181828;
+  stroke-width: 0.25px;
+  fill: grey;
+}
 
-	body{
-		background: #181828;
-	}
+body{
+    background: #181828;
+}
 
-	.subunit{
-		fill: #434429;
-	}
-	
-	div.tooltip {	
-		position: absolute;			
-		text-align: center;			
-		width: 120px;					
-		height: 100px;					
-		padding: 2px;				
-		font: 12px sans-serif;		
-		background: lightsteelblue;	
-		border: 0px;		
-		border-radius: 8px;			
-		pointer-events: none;
-	}
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 120px;					
+    height: 100px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;
+}
+
 
 </style>
-
-<title>Earthquake Map</title>
-
 <body>
-	<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script></script>
-	<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://unpkg.com/topojson@3"></script>
 <script>
-
-function redraw(){
-
-document.body.innerHTML = '';
-
 var width = window.innerWidth-30,
     height = window.innerHeight-30;
 
-	
-var projection = d3.geo.mercator()
+var projection = d3.geoMercator()
     .center([0, 0])
-    .scale(width*0.1588)
-    .translate([width / 2, height / 2]);
-
-var path = d3.geo.path()
-    .projection(projection);
+    .scale(width*0.15)
+    .translate([(width / 2)-70, (height / 2)+100]);
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
-	
-// Define the div for the tooltip
+
+var path = d3.geoPath()
+    .projection(projection);
+
+var g = svg.append("g");
+
 var div = d3.select("body").append("div")	
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
-var magnitudeScale = d3.scale.linear()
-			.domain([Math.sqrt(Math.pow(10, -1)), Math.sqrt(Math.pow(10, 8))])
-			.range([0, 60]);
+// load and display the World
+d3.json("world-110m2.json").then(function(topology) {
 
-	
-d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, countries) {
-   
-  svg.selectAll(".subunit")
-      .data(topojson.feature(countries, countries.objects.countries).features)
-    .enter().append("path")
-      .attr("class", function(d) { return "subunit " + d.id; })
-      .attr("d", path);
+    g.selectAll("path")
+       .data(topojson.feature(topology, topology.objects.countries).features)
+       .enter().append("path")
+       .attr("d", path);
+
 });
 
-d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson", function(error, earthquakes){
+var magnitudeScale = d3.scaleLinear()
+			.domain([0, 8])
+			.range([0, 20]);
 
-	svg.selectAll(".earthQuakes")
-	.data(earthquakes.features)
-	.enter().append("circle")
-	.attr("cx", function(d){ return (projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[0])})
-	.attr("cy", function(d){return (projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[1])})
-	.attr("r", function(d){return magnitudeScale(Math.sqrt(Math.pow(10, d.properties.mag)))})
-	.attr("fill", function(d) { if(d.properties.alert == null){ return "#ffffff";}else{ return d.properties.alert; }})
-	.on("mouseover", function(d){
-		div.transition()
-			.duration(200)
-			.style("opacity", 0.9);
-			div.html(d.properties.place + "<br> magnitude " + d.properties.mag + "<br>" + new Date(d.properties.time))
-			.style("left", (d3.event.pageX) + "px")
-			.style("top", (d3.event.pageY-28) + "px");
-			})
-	.on("mouseout", function(d) {		
-            div.transition()		
-                .duration(500)		
-                .style("opacity", 0);})
-	.on("click", function(d){
-		window.open(d.properties.url, '_blank');
-	});				
-});
 
-}
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson").then(function(earthquakes) {
+      g.selectAll("circles")
+      .data(earthquakes.features)
+      .enter().append("circle")
+      .attr("cx", function(d){ return (projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[0])})
+      .attr("cy", function(d){return (projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[1])})
+      .attr("r", function(d){return magnitudeScale(d.properties.mag)})
+      .attr("fill", function(d) { if(d.properties.alert == null){ return "#ffffff";}else{ return d.properties.alert; }})
+      .on("mouseover", function(d){
+        div.transition()
+            .duration(200)
+            .style("opacity", 0.9);
+            div.html(d.srcElement.__data__.properties.place + "<br> magnitude " + d.srcElement.__data__.properties.mag + "<br>" + new Date(d.srcElement.__data__.properties.time))
+            .style("left", (d.pageX) + "px")
+            .style("top", (d.pageY-28) + "px");
+            })
+        .on("mouseout", function(d) {		
+                div.transition()		
+                    .duration(500)		
+                    .style("opacity", 0);})
+        .on("click", function(d){
+            window.open(d.properties.url, '_blank');
+        });
+    })
+    .catch(function(error) {
+      console.error(error);
+    });
 
-redraw();
 
-window.addEventListener("resize", redraw);
+var title = g.append("text")
+.attr("text-anchor","middle")
+.html("Map of the most significant earthquakes in the last week")
+.style("font-size", "xx-large")
+.style("fill", "grey")
+.style("font-weight", "bolder")
+.attr("dy", "0em")
+.attr("x", width/2)
+.attr("y", height - 80);
+
+var source = g.append("text")
+.attr("text-anchor","middle")
+.html("(Source: <a href=https://www.usgs.gov style=fill-rule:unset;fill:grey>www.usgs.gov</a>)")
+.style("font-size", "x-large")
+.style("fill", "grey")
+.attr("dy", "1.5em")
+.attr("x", width/2)
+.attr("y", height - 80);
+
+
+
+    window.addEventListener('load',function(){ g.selectAll("circles").raise(); title.raise(); source.raise();});
 
 </script>
+</body>
+</html>
